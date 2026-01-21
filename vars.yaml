@@ -9,7 +9,7 @@ datacenter: BI
 vm_folder_relative_path: Provition
 datacenter_name: "DC1"
 datastore_name: "Datastore01"
-portgroup_name: "VM Network"
+portgroup_name: "85-Network"
 
 # VM specs
 vm_name: "automation-vm"
