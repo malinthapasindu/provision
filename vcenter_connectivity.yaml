@@ -1,0 +1,32 @@
+---
+- name: vCenter connectivity check
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    vcenter_hostname: "vcenter.example.local"
+    vcenter_username: "administrator@vsphere.local"
+    vcenter_password: "CHANGE_ME"
+    vcenter_validate_certs: false   # use true if your CA is trusted
+
+  tasks:
+    - name: Try login by listing datacenters
+      block:
+        - name: Get datacenters (this confirms login works)
+          vmware.vmware_rest.vcenter_datacenter_info:
+            vcenter_hostname: "{{ vcenter_hostname }}"
+            vcenter_username: "{{ vcenter_username }}"
+            vcenter_password: "{{ vcenter_password }}"
+            vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+          register: dc_info
+
+        - name: Login success message
+          ansible.builtin.debug:
+            msg: >-
+              Login success to vCenter {{ vcenter_hostname }}.
+              Datacenters found: {{ (dc_info.value | default([])) | length }}
+
+      rescue:
+        - name: Login failed message
+          ansible.builtin.fail:
+            msg: "Login/connectivity failed to vCenter {{ vcenter_hostname }}. Error: {{ ansible_failed_result }}"
