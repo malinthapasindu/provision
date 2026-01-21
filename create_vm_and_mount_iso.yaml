@@ -27,15 +27,7 @@
           - type: SATA
             new_vmdk:
               name: "{{ vm_name }}-disk0"
-              # capacity in bytes per module doc; use GiB -> bytes
-              capacity: "{{ disk0_gb | int * 1024 * 1024 * 1024 }}"
-
-        nics:
-          - backing:
-              type: "STANDARD_PORTGROUP"
-              network: "{{ network_id }}"
-            type: "VMXNET3"
-            start_connected: true
+              capacity: "{{ disk0_gb }}"
 
         cdroms:
           - type: "SATA"
