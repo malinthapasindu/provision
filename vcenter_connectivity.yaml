@@ -2,13 +2,7 @@
 - name: vCenter connectivity check
   hosts: localhost
   gather_facts: false
-
-  vars:
-    vcenter_hostname: "vcenter.example.local"
-    vcenter_username: "administrator@vsphere.local"
-    vcenter_password: "CHANGE_ME"
-    vcenter_validate_certs: false   # use true if your CA is trusted
-
+  
   tasks:
     - name: Try login by listing datacenters
       block:
