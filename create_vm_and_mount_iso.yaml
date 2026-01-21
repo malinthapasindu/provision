@@ -11,9 +11,8 @@
         vcenter_validate_certs: "{{ validate_certs }}"
 
         placement:
-          cluster: "{{ cluster_id }}"
-          datastore: "{{ datastore_id }}"
-          folder: "{{ folder_id }}"
+          datastore: "{{ datastore_name }}"
+          folder: "{{ vm_folder_relative_path }}"
    
         name: "{{ vm_name }}"
         guest_OS: "{{ guest_os }}"
