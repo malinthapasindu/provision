@@ -1,8 +1,5 @@
 ---
-- name: vCenter connectivity check
-  hosts: localhost
-  gather_facts: false
-  
+- name: vCenter connectivity check  
   tasks:
     - name: Try login by listing datacenters
       block:
