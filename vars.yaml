@@ -12,7 +12,7 @@ datastore_name: "Datastore01"
 portgroup_name: "VM Network"
 
 # VM specs
-vm_name: "aml-iso-01"
+vm_name: "automation-vm"
 guest_os: "RHEL_8_64"
 hardware_version: "VMX_19"
 cpu_count: 2
@@ -20,4 +20,4 @@ mem_mib: 4096
 disk0_gb: 40
 
 # ISO must exist in datastore already
-iso_datastore_path: "[Datastore01] iso/RHEL9.iso"
+iso_datastore_path: "[datastore2] ISO/rhel-9.3-x86_64-dvd.iso"
