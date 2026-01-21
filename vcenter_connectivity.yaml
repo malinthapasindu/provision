@@ -1,5 +1,7 @@
 ---
-- name: vCenter connectivity check  
+- name: vCenter connectivity check
+  hosts: localhost
+  
   tasks:
     - name: Try login by listing datacenters
       block:
