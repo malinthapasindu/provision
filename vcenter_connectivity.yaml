@@ -10,7 +10,7 @@
             vcenter_hostname: "{{ vcenter_hostname }}"
             vcenter_username: "{{ vcenter_username }}"
             vcenter_password: "{{ vcenter_password }}"
-            validate_certs: "{{ validate_certs }}"
+            vcenter_validate_certs: "{{ vcenter_validate_certs }}"
           register: dc_info
 
         - name: Login success message
