@@ -2,19 +2,7 @@
 - name: Create vCenter VM folder
   hosts: localhost
   vars_files:
-    - vars/vcenter.yml
-  vars:
-    vcenter_hostname: "vcenter.example.local"
-    vcenter_username: "administrator@vsphere.local"
-    vcenter_password: "CHANGE_ME"
-    validate_certs: false
-
-    datacenter: "DC1"
-
-    # This is the folder tree under: /<datacenter>/vm/
-    # Example: /DC1/vm/Cluster01/Provision
-    vm_folder_relative_path: "Cluster01/Provision"
-
+    - vars.yml
   tasks:
     - name: Create VM folder path
       vmware.vmware.folder:
