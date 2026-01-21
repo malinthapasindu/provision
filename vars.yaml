@@ -1,6 +1,23 @@
+# vCenter Credntials
 vcenter_hostname: 192.168.85.60
 vcenter_username: Administrator@vsphere.local
 vcenter_password: Nable@123
 validate_certs: false
+
+# Cluster Details
 datacenter: BI
 vm_folder_relative_path: Provition
+datacenter_name: "DC1"
+datastore_name: "Datastore01"
+portgroup_name: "VM Network"
+
+# VM specs
+vm_name: "aml-iso-01"
+guest_os: "RHEL_8_64"
+hardware_version: "VMX_19"
+cpu_count: 2
+mem_mib: 4096
+disk0_gb: 40
+
+# ISO must exist in datastore already
+iso_datastore_path: "[Datastore01] iso/RHEL9.iso"
