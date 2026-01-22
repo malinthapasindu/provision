@@ -38,6 +38,8 @@
       vcenter_hostname: "{{ vcenter_hostname }}"
       vcenter_username: "{{ vcenter_username }}"
       vcenter_password: "{{ vcenter_password }}"
+      validate_certs: false
+
 
   tasks:
     # 2) Resolve MoIDs
