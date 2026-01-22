@@ -21,7 +21,7 @@
     portgroup_name: "85-Network"
 
     # Folder to create under /<DC>/vm/
-    vm_folder_relative_path: "Provision"
+    vm_folder_relative_path: "Provition"
 
     # VM specs
     vm_name: "aml-iso-01"
