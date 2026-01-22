@@ -34,6 +34,12 @@
     ds_path: "/{{ datacenter_name }}/datastore/{{ datastore_name }}"
     net_path: "/{{ datacenter_name }}/network/{{ network_name }}"
 
+    environment:
+    VMWARE_HOST: "{{ vcenter_hostname }}"
+    VMWARE_USER: "{{ vcenter_username }}"
+    VMWARE_PASSWORD: "{{ vcenter_password }}"
+    VMWARE_VALIDATE_CERTS: "{{ vcenter_validate_certs | ternary('true','false') }}"
+
   tasks:
     - name: Create VM (powered off) on standalone ESXi host
       vmware.vmware_rest.vcenter_vm:
