@@ -29,10 +29,4 @@
               name: "{{ vm_name }}-disk0"
               capacity: "{{ disk0_gb }}"
 
-        cdroms:
-          - type: "SATA"
-            start_connected: true
-            backing:
-              type: "ISO_FILE"
-              iso_file: "{{ iso_datastore_path }}"
       register: new_vm
