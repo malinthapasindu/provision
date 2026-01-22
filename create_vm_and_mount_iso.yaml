@@ -98,12 +98,6 @@
               network: "{{ network_id }}"
             type: "VMXNET3"
             start_connected: true
-
-        cdroms:
-          - type: "SATA"
-            start_connected: true
-            backing:
-              type: "ISO_FILE"
-              iso_file: "{{ iso_datastore_path }}"
+            
       register: new_vm
 
