@@ -4,26 +4,20 @@
   gather_facts: false
 
   vars:
-    # vCenter connection (in AAP pass via Survey/extra_vars or Credential)
     vcenter_hostname: "192.168.85.60"
     vcenter_username: "Administrator@vsphere.local"
     vcenter_password: "Nable@123"
 
-    # vmware_rest modules use vcenter_validate_certs
     vcenter_validate_certs: false
-
-    # vmware.vmware modules use validate_certs
     validate_certs: false
 
-    # vSphere inventory
     datacenter_name: "BI"
+    #cluster_name: "YOUR_CLUSTER_NAME"        # <-- add this
     datastore_name: "datastore2"
     portgroup_name: "85-Network"
 
-    # Folder to create under /<DC>/vm/
-    vm_folder_relative_path: "Provition"
+    vm_folder_relative_path: "Provision"     # <-- fix typo
 
-    # VM specs
     vm_name: "aml-iso-01"
     guest_os: "RHEL_8_64"
     hardware_version: "VMX_19"
@@ -31,18 +25,15 @@
     mem_mib: 4096
     disk0_gb: 40
 
-    # ISO must exist in datastore already
     iso_datastore_path: "[datastore2] ISO/rhel-9.3-x86_64-dvd.iso"
 
-    # For moid_from_path lookup plugin
     connection_args:
       vcenter_hostname: "{{ vcenter_hostname }}"
       vcenter_username: "{{ vcenter_username }}"
       vcenter_password: "{{ vcenter_password }}"
-      vcenter_validate_certs: "{{ vcenter_validate_certs }}"
-      
-  tasks:
-      # 2) Resolve MoIDs
+      validate_certs: "{{ validate_certs }}"
+
+
     - name: Lookup Datastore MoID
       ansible.builtin.set_fact:
         datastore_id: >-
@@ -50,7 +41,7 @@
                     '/' ~ datacenter_name ~ '/datastore/' ~ datastore_name,
                     **connection_args) }}
 
-    - name: Lookup VM Folder MoID (Provision)
+    - name: Lookup VM Folder MoID
       ansible.builtin.set_fact:
         folder_id: >-
           {{ lookup('vmware.vmware.moid_from_path',
@@ -64,8 +55,7 @@
                     '/' ~ datacenter_name ~ '/network/' ~ portgroup_name,
                     **connection_args) }}
 
-     # 3) Create VM with disk + NIC + CDROM mounted to ISO
-    - name: Create VM (with ISO mounted to CD-ROM)
+      - name: Create VM (with ISO mounted)
       vmware.vmware_rest.vcenter_vm:
         vcenter_hostname: "{{ vcenter_hostname }}"
         vcenter_username: "{{ vcenter_username }}"
@@ -81,7 +71,6 @@
         hardware_version: "{{ hardware_version }}"
         memory:
           size_MiB: "{{ mem_mib }}"
-
         cpu:
           count: "{{ cpu_count }}"
 
@@ -89,7 +78,6 @@
           - type: SATA
             new_vmdk:
               name: "{{ vm_name }}-disk0"
-              # capacity in bytes per module doc; use GiB -> bytes
               capacity: "{{ disk0_gb | int * 1024 * 1024 * 1024 }}"
 
         nics:
@@ -107,7 +95,6 @@
               iso_file: "{{ iso_datastore_path }}"
       register: new_vm
 
-    # 4) Optional: power on
     - name: Power on VM
       vmware.vmware_rest.vcenter_vm_power:
         vcenter_hostname: "{{ vcenter_hostname }}"
