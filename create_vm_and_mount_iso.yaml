@@ -75,8 +75,7 @@
         placement:
           datastore: "{{ datastore_id }}"
           folder: "{{ folder_id }}"
-          resource_pool: "{{ resource_pool_id }}"
-
+    
         name: "{{ vm_name }}"
         guest_OS: "{{ guest_os }}"
         hardware_version: "{{ hardware_version }}"
