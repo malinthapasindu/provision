@@ -1,6 +1,7 @@
 ---
 - name: Create VM and mount ISO in vCenter
   hosts: localhost
+  gather_facts: false
 
   vars:
     # vCenter connection (in AAP pass via Survey/extra_vars or Credential)
@@ -23,7 +24,7 @@
     vm_folder_relative_path: "Provision"
 
     # VM specs
-    vm_name: "provition-vm"
+    vm_name: "aml-iso-01"
     guest_os: "RHEL_8_64"
     hardware_version: "VMX_19"
     cpu_count: 2
@@ -38,11 +39,10 @@
       vcenter_hostname: "{{ vcenter_hostname }}"
       vcenter_username: "{{ vcenter_username }}"
       vcenter_password: "{{ vcenter_password }}"
-      validate_certs: false
-
-
+      vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+      
   tasks:
-    # 2) Resolve MoIDs
+      # 2) Resolve MoIDs
     - name: Lookup Datastore MoID
       ansible.builtin.set_fact:
         datastore_id: >-
@@ -64,7 +64,7 @@
                     '/' ~ datacenter_name ~ '/network/' ~ portgroup_name,
                     **connection_args) }}
 
-    # 3) Create VM with disk + NIC + CDROM mounted to ISO
+     # 3) Create VM with disk + NIC + CDROM mounted to ISO
     - name: Create VM (with ISO mounted to CD-ROM)
       vmware.vmware_rest.vcenter_vm:
         vcenter_hostname: "{{ vcenter_hostname }}"
@@ -75,7 +75,7 @@
         placement:
           datastore: "{{ datastore_id }}"
           folder: "{{ folder_id }}"
-    
+
         name: "{{ vm_name }}"
         guest_OS: "{{ guest_os }}"
         hardware_version: "{{ hardware_version }}"
@@ -98,6 +98,25 @@
               network: "{{ network_id }}"
             type: "VMXNET3"
             start_connected: true
-            
+
+        cdroms:
+          - type: "SATA"
+            start_connected: true
+            backing:
+              type: "ISO_FILE"
+              iso_file: "{{ iso_datastore_path }}"
       register: new_vm
 
+    # 4) Optional: power on
+    - name: Power on VM
+      vmware.vmware_rest.vcenter_vm_power:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+        vm: "{{ new_vm.id }}"
+        state: start
+
+    - name: Done
+      ansible.builtin.debug:
+        msg: "VM {{ vm_name }} created (id={{ new_vm.id }}) and ISO mounted: {{ iso_datastore_path }}"
