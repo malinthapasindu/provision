@@ -1,58 +1,76 @@
 ---
-- name: Create a VM
+- name: Create VM (no template) in BI datacenter on a standalone ESXi host
   hosts: localhost
   gather_facts: false
+  collections:
+    - vmware.vmware_rest
 
   vars:
+    # vCenter access
     vcenter_hostname: "192.168.85.60"
     vcenter_username: "Administrator@vsphere.local"
     vcenter_password: "Nable@123"
-    validate_certs: false
+    vcenter_validate_certs: false
 
-    datacenter: "DC01"
-    folder: "/DC01/vm/Provision"              # adjust if you have subfolders
-    #cluster: "Cluster01"            # or use resource_pool instead
-    datastore: "datastore02"
+    # vSphere inventory (from your screenshot)
+    datacenter_name: "BI"
+    esxi_host: "192.168.50.58"     # change to 192.168.50.58 or 192.168.50.59 if needed
 
-    vm_name: "new-vm-001"
-    guest_id: "rhel9_64Guest"       # examples: ubuntu64Guest, windows9Server64Guest, rhel8_64Guest
-    cpu: 2
-    memory_mb: 4096
-
-    disk_gb: 60
+    # Placement targets (you must set these two)
+    datastore_name: "datastore2"
     network_name: "85-Network"
 
-    power_state: "poweredoff"       # keep off = "create only"
+    # VM spec
+    vm_name: "new-vm-001"
+    guest_os: "RHEL_9_64"          # example; adjust to your OS enum
+    cpu_count: 2
+    memory_mib: 4096
+    disk0_gb: 40
+
+    # Standard paths used by vmware_rest lookup plugins
+    vm_folder_path: "/{{ datacenter_name }}/vm"
+    host_path: "/{{ datacenter_name }}/host/{{ esxi_host }}"
+    rp_path: "/{{ datacenter_name }}/host/{{ esxi_host }}/Resources"
+    ds_path: "/{{ datacenter_name }}/datastore/{{ datastore_name }}"
+    net_path: "/{{ datacenter_name }}/network/{{ network_name }}"
 
   tasks:
-    - name: Create VM (no template)
-      vmware.vmware.vmware_guest:
-        hostname: "{{ vcenter_hostname }}"
-        username: "{{ vcenter_username }}"
-        password: "{{ vcenter_password }}"
-        validate_certs: "{{ validate_certs }}"
-
-        datacenter: "{{ datacenter }}"
-        folder: "{{ folder }}"
-        #cluster: "{{ cluster }}"
-        datastore: "{{ datastore }}"
+    - name: Create VM (powered off) on standalone ESXi host
+      vmware.vmware_rest.vcenter_vm:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+        state: present
 
         name: "{{ vm_name }}"
-        guest_id: "{{ guest_id }}"
-        state: "{{ power_state }}"
+        guest_OS: "{{ guest_os }}"   # required field for create :contentReference[oaicite:2]{index=2}
 
-        hardware:
-          num_cpus: "{{ cpu }}"
-          memory_mb: "{{ memory_mb }}"
+        placement:
+          folder: "{{ lookup('vmware.vmware_rest.folder_moid', vm_folder_path) }}"
+          datastore: "{{ lookup('vmware.vmware_rest.datastore_moid', ds_path) }}"
+          host: "{{ lookup('vmware.vmware_rest.host_moid', host_path) }}"
+          resource_pool: "{{ lookup('vmware.vmware_rest.resource_pool_moid', rp_path) }}"
+          # placement.host is supported :contentReference[oaicite:3]{index=3}
 
-        disk:
-          - size_gb: "{{ disk_gb }}"
-            type: thin
-            datastore: "{{ datastore }}"
+        cpu:
+          count: "{{ cpu_count }}"
+        memory:
+          size_MiB: "{{ memory_mib }}"
 
-        networks:
-          - name: "{{ network_name }}"
-            type: dhcp
+        disks:
+          - type: SATA
+            new_vmdk:
+              name: "{{ vm_name }}-disk0"
+              capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}"  # bytes
 
-        wait_for_ip_address: false
-      delegate_to: localhost
+        nics:
+          - type: VMXNET3
+            backing:
+              type: STANDARD_PORTGROUP
+              network: "{{ lookup('vmware.vmware_rest.network_moid', net_path) }}"
+      register: vm_result
+
+    - name: Show created VM MOID
+      ansible.builtin.debug:
+        msg: "Created VM id: {{ vm_result.id }}"
