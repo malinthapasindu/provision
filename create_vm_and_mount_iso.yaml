@@ -33,16 +33,10 @@
   # ✅ MUST be at play level (NOT inside vars)
   environment:
     # vmware_rest lookup plugin settings
-    VCENTER_HOSTNAME: "{{ vcenter_hostname }}"
-    VCENTER_USERNAME: "{{ vcenter_username }}"
-    VCENTER_PASSWORD: "{{ vcenter_password }}"
-    VCENTER_VALIDATE_CERTS: "{{ 'true' if vcenter_validate_certs else 'false' }}"
-
-    # (extra compatibility - harmless if unused)
-    VMWARE_HOST: "{{ vcenter_hostname }}"
-    VMWARE_USER: "{{ vcenter_username }}"
-    VMWARE_PASSWORD: "{{ vcenter_password }}"
-    VMWARE_VALIDATE_CERTS: "{{ 'true' if vcenter_validate_certs else 'false' }}"
+    vcenter_hostname: "{{ vcenter_hostname }}"
+    vcenter_username: "{{ vcenter_username }}"
+    vcenter_password: "{{ vcenter_password }}"
+    vcenter_validate_certs: "{{ 'true' if vcenter_validate_certs else 'false' }}"
 
   tasks:
     - name: Create VM (powered off) on standalone ESXi host
