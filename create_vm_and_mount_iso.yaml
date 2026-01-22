@@ -2,8 +2,6 @@
 - name: Create VM (no template) in BI datacenter on a standalone ESXi host
   hosts: localhost
   gather_facts: false
-  collections:
-    - vmware.vmware_rest
 
   vars:
     # vCenter access
