@@ -4,11 +4,12 @@
   gather_facts: false
   collections:
     - vmware.vmware_rest
+    - vmware.vmware
 
   vars:
     vcenter_hostname: "192.168.85.60"
     vcenter_username: "Administrator@vsphere.local"
-    vcenter_password: "Nable@123"
+    vcenter_password: "Nable@123"     # <-- use AAP credential in real usage
     vcenter_validate_certs: false
 
     datacenter_name: "BI"
@@ -23,23 +24,30 @@
     memory_mib: 4096
     disk0_gb: 40
 
-    # Inventory paths
-    vm_folder_path: "/{{ datacenter_name }}/vm"
+    # Inventory paths (as shown in vCenter UI)
+    folder_path: "/{{ datacenter_name }}/vm"
     host_path: "/{{ datacenter_name }}/host/{{ esxi_host }}"
     rp_path: "/{{ datacenter_name }}/host/{{ esxi_host }}/Resources"
     ds_path: "/{{ datacenter_name }}/datastore/{{ datastore_name }}"
     net_path: "/{{ datacenter_name }}/network/{{ network_name }}"
 
-  # ✅ MUST be at play level (NOT inside vars)
+  # ✅ Correct env var names that the lookup plugin reads
   environment:
-    # vmware_rest lookup plugin settings
-    vcenter_hostname: "{{ vcenter_hostname }}"
-    vcenter_username: "{{ vcenter_username }}"
-    vcenter_password: "{{ vcenter_password }}"
-    vcenter_validate_certs: "{{ 'true' if vcenter_validate_certs else 'false' }}"
+    VMWARE_HOST: "{{ vcenter_hostname }}"
+    VMWARE_USER: "{{ vcenter_username }}"
+    VMWARE_PASSWORD: "{{ vcenter_password }}"
+    VMWARE_VALIDATE_CERTS: "{{ 'false' if (not vcenter_validate_certs) else 'true' }}"
 
   tasks:
-    - name: Create VM (powered off) on standalone ESXi host
+    - name: Resolve MoIDs using inventory paths
+      ansible.builtin.set_fact:
+        folder_moid: "{{ lookup('vmware.vmware.moid_from_path', folder_path, type='folder') }}"
+        host_moid: "{{ lookup('vmware.vmware.moid_from_path', host_path, type='host') }}"
+        rp_moid: "{{ lookup('vmware.vmware.moid_from_path', rp_path, type='resource_pool') }}"
+        ds_moid: "{{ lookup('vmware.vmware.moid_from_path', ds_path, type='datastore') }}"
+        net_moid: "{{ lookup('vmware.vmware.moid_from_path', net_path, type='network') }}"
+
+    - name: Create VM (powered off)
       vmware.vmware_rest.vcenter_vm:
         vcenter_hostname: "{{ vcenter_hostname }}"
         vcenter_username: "{{ vcenter_username }}"
@@ -51,10 +59,10 @@
         guest_OS: "{{ guest_os }}"
 
         placement:
-          folder: "{{ lookup('vmware.vmware_rest.folder_moid', vm_folder_path) }}"
-          datastore: "{{ lookup('vmware.vmware_rest.datastore_moid', ds_path) }}"
-          host: "{{ lookup('vmware.vmware_rest.host_moid', host_path) }}"
-          resource_pool: "{{ lookup('vmware.vmware_rest.resource_pool_moid', rp_path) }}"
+          folder: "{{ folder_moid }}"
+          host: "{{ host_moid }}"
+          resource_pool: "{{ rp_moid }}"
+          datastore: "{{ ds_moid }}"
 
         cpu:
           count: "{{ cpu_count }}"
@@ -72,7 +80,7 @@
             start_connected: true
             backing:
               type: STANDARD_PORTGROUP
-              network: "{{ lookup('vmware.vmware_rest.network_moid', net_path) }}"
+              network: "{{ net_moid }}"
       register: vm_result
 
     - name: Show created VM id
