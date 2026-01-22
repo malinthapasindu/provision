@@ -1,5 +1,5 @@
 ---
-- name: Create VM and mount ISO in vCenter
+- name: Create a VM
   hosts: localhost
   gather_facts: false
 
@@ -7,103 +7,52 @@
     vcenter_hostname: "192.168.85.60"
     vcenter_username: "Administrator@vsphere.local"
     vcenter_password: "Nable@123"
-
-    vcenter_validate_certs: false
     validate_certs: false
 
-    datacenter_name: "BI"
-    #cluster_name: "YOUR_CLUSTER_NAME"        # <-- add this
-    datastore_name: "datastore2"
-    portgroup_name: "85-Network"
+    datacenter: "DC01"
+    folder: "/DC01/vm/Provision"              # adjust if you have subfolders
+    #cluster: "Cluster01"            # or use resource_pool instead
+    datastore: "datastore02"
 
-    vm_folder_relative_path: "Provision"     # <-- fix typo
+    vm_name: "new-vm-001"
+    guest_id: "rhel9_64Guest"       # examples: ubuntu64Guest, windows9Server64Guest, rhel8_64Guest
+    cpu: 2
+    memory_mb: 4096
 
-    vm_name: "aml-iso-01"
-    guest_os: "RHEL_8_64"
-    hardware_version: "VMX_19"
-    cpu_count: 2
-    mem_mib: 4096
-    disk0_gb: 40
+    disk_gb: 60
+    network_name: "85-Network"
 
-    iso_datastore_path: "[datastore2] ISO/rhel-9.3-x86_64-dvd.iso"
+    power_state: "poweredoff"       # keep off = "create only"
 
-    connection_args:
-      vcenter_hostname: "{{ vcenter_hostname }}"
-      vcenter_username: "{{ vcenter_username }}"
-      vcenter_password: "{{ vcenter_password }}"
-      validate_certs: "{{ validate_certs }}"
+  tasks:
+    - name: Create VM (no template)
+      vmware.vmware.vmware_guest:
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        validate_certs: "{{ validate_certs }}"
 
-
-    - name: Lookup Datastore MoID
-      ansible.builtin.set_fact:
-        datastore_id: >-
-          {{ lookup('vmware.vmware.moid_from_path',
-                    '/' ~ datacenter_name ~ '/datastore/' ~ datastore_name,
-                    **connection_args) }}
-
-    - name: Lookup VM Folder MoID
-      ansible.builtin.set_fact:
-        folder_id: >-
-          {{ lookup('vmware.vmware.moid_from_path',
-                    '/' ~ datacenter_name ~ '/vm/' ~ vm_folder_relative_path,
-                    **connection_args) }}
-
-    - name: Lookup Network (Portgroup) MoID
-      ansible.builtin.set_fact:
-        network_id: >-
-          {{ lookup('vmware.vmware.moid_from_path',
-                    '/' ~ datacenter_name ~ '/network/' ~ portgroup_name,
-                    **connection_args) }}
-
-      - name: Create VM (with ISO mounted)
-      vmware.vmware_rest.vcenter_vm:
-        vcenter_hostname: "{{ vcenter_hostname }}"
-        vcenter_username: "{{ vcenter_username }}"
-        vcenter_password: "{{ vcenter_password }}"
-        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
-
-        placement:
-          datastore: "{{ datastore_id }}"
-          folder: "{{ folder_id }}"
+        datacenter: "{{ datacenter }}"
+        folder: "{{ folder }}"
+        #cluster: "{{ cluster }}"
+        datastore: "{{ datastore }}"
 
         name: "{{ vm_name }}"
-        guest_OS: "{{ guest_os }}"
-        hardware_version: "{{ hardware_version }}"
-        memory:
-          size_MiB: "{{ mem_mib }}"
-        cpu:
-          count: "{{ cpu_count }}"
+        guest_id: "{{ guest_id }}"
+        state: "{{ power_state }}"
 
-        disks:
-          - type: SATA
-            new_vmdk:
-              name: "{{ vm_name }}-disk0"
-              capacity: "{{ disk0_gb | int * 1024 * 1024 * 1024 }}"
+        hardware:
+          num_cpus: "{{ cpu }}"
+          memory_mb: "{{ memory_mb }}"
 
-        nics:
-          - backing:
-              type: "STANDARD_PORTGROUP"
-              network: "{{ network_id }}"
-            type: "VMXNET3"
-            start_connected: true
+        disk:
+          - size_gb: "{{ disk_gb }}"
+            type: thin
+            datastore: "{{ datastore }}"
 
-        cdroms:
-          - type: "SATA"
-            start_connected: true
-            backing:
-              type: "ISO_FILE"
-              iso_file: "{{ iso_datastore_path }}"
-      register: new_vm
+        networks:
+          - name: "{{ network_name }}"
+            type: dhcp
 
-    - name: Power on VM
-      vmware.vmware_rest.vcenter_vm_power:
-        vcenter_hostname: "{{ vcenter_hostname }}"
-        vcenter_username: "{{ vcenter_username }}"
-        vcenter_password: "{{ vcenter_password }}"
-        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
-        vm: "{{ new_vm.id }}"
-        state: start
-
-    - name: Done
-      ansible.builtin.debug:
-        msg: "VM {{ vm_name }} created (id={{ new_vm.id }}) and ISO mounted: {{ iso_datastore_path }}"
+        wait_for_ip_address: false
+      delegate_to: localhost
