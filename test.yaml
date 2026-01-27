@@ -143,10 +143,10 @@
     # --- Create VM using those MoIDs ---
     - name: Create VM (no template) using vcenter_vm with explicit MoIDs
       vmware.vmware_rest.vcenter_vm:
-        vcenter_hostname: "{{ vcenter_hostname }}"
-        vcenter_username: "{{ vcenter_username }}"
-        vcenter_password: "{{ vcenter_password }}"
-        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+        #vcenter_hostname: "{{ vcenter_hostname }}"
+        #vcenter_username: "{{ vcenter_username }}"
+        #vcenter_password: "{{ vcenter_password }}"
+        #vcenter_validate_certs: "{{ vcenter_validate_certs }}"
         #state: present
 
         name: "{{ vm_name }}"
