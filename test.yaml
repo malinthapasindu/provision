@@ -138,8 +138,7 @@
           folder_moid: "{{ folder_moid }}"
           datastore_moid: "{{ datastore_moid }}"
           network_moid: "{{ network_moid }}"
-          resource_pool_moid: "{{ resource_pool_moid }}"
-
+          
     - name: Save MoIDs to file (optional)
       when: save_moids_to_file | bool
       ansible.builtin.copy:
