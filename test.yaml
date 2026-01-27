@@ -1,13 +1,219 @@
-- name: Create a VM
+---
+- name: Discover MoIDs and create VM (no template) using vcenter_vm
   hosts: localhost
-  vmware.vmware_rest.vcenter_vm:
-    placement:
-      datastore: "{{ lookup('vmware.vmware_rest.datastore_moid', '/BI/datastore/datastore2') }}"
-      folder: "{{ lookup('vmware.vmware_rest.folder_moid', '/BI/vm/Provition') }}"
-    name: test_vm1
-    guest_OS: RHEL_8_64
-    hardware_version: VMX_11
-    memory:
-      hot_add_enabled: true
-      size_MiB: 1024
-  register: my_vm
+  gather_facts: false
+  collections:
+    - vmware.vmware_rest
+
+  vars:
+    # vCenter
+    vcenter_hostname: "192.168.85.60"
+    vcenter_username: "Administrator@vsphere.local"
+    vcenter_password: "Nable@123"
+    vcenter_validate_certs: false
+
+    # Your vSphere objects
+    datacenter_name: "BI"
+    esxi_host_name: "192.168.50.58"      # as shown in vCenter inventory
+    vm_folder_name: "Provition"                 # default VM folder under the datacenter
+    datastore_name: "datastore2"
+    network_name: "85-Network"
+
+    # VM spec
+    vm_name: "new-vm-001"
+    guest_os: "RHEL_9_64"                # VMware REST GuestOS enum
+    cpu_count: 2
+    memory_mib: 4096
+    disk0_gb: 40
+
+    # Resource Pool name (default on most standalone/cluster roots)
+    #resource_pool_name: "Resources"
+
+    # Optional: write discovered MoIDs to a file for reuse
+    #save_moids_to_file: true
+    #moids_file_path: "/tmp/vsphere_moids.yml"
+
+  tasks:
+    # --- Discover MoIDs (IDs) ---
+
+    - name: Get datacenter id
+      vmware.vmware_rest.vcenter_datacenter_info:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+        filter_names: ["{{ datacenter_name }}"]
+      register: dc
+
+    - name: Assert datacenter found
+      ansible.builtin.assert:
+        that: dc.value | length > 0
+        fail_msg: "Datacenter '{{ datacenter_name }}' not found."
+
+    - name: Set datacenter MoID
+      ansible.builtin.set_fact:
+        datacenter_moid: "{{ dc.value[0].datacenter }}"
+
+    - name: Get ESXi host id (filtered by datacenter)
+      vmware.vmware_rest.vcenter_host_info:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+        filter_names: ["{{ esxi_host_name }}"]
+        filter_datacenters: ["{{ datacenter_moid }}"]
+      register: hostinfo
+
+    - name: Assert host found
+      ansible.builtin.assert:
+        that: hostinfo.value | length > 0
+        fail_msg: "Host '{{ esxi_host_name }}' not found under datacenter '{{ datacenter_name }}'."
+
+    - name: Set host MoID
+      ansible.builtin.set_fact:
+        host_moid: "{{ hostinfo.value[0].host }}"
+
+    - name: Get VM folder id (filtered by datacenter)
+      vmware.vmware_rest.vcenter_folder_info:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+        filter_names: ["{{ vm_folder_name }}"]
+        filter_datacenters: ["{{ datacenter_moid }}"]
+      register: folderinfo
+
+    - name: Assert folder found
+      ansible.builtin.assert:
+        that: folderinfo.value | length > 0
+        fail_msg: "Folder '{{ vm_folder_name }}' not found under datacenter '{{ datacenter_name }}'."
+
+    - name: Set folder MoID
+      ansible.builtin.set_fact:
+        folder_moid: "{{ folderinfo.value[0].folder }}"
+
+    - name: Get datastore id (filtered by datacenter)
+      vmware.vmware_rest.vcenter_datastore_info:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+        filter_names: ["{{ datastore_name }}"]
+        filter_datacenters: ["{{ datacenter_moid }}"]
+      register: dsinfo
+
+    - name: Assert datastore found
+      ansible.builtin.assert:
+        that: dsinfo.value | length > 0
+        fail_msg: "Datastore '{{ datastore_name }}' not found under datacenter '{{ datacenter_name }}'."
+
+    - name: Set datastore MoID
+      ansible.builtin.set_fact:
+        datastore_moid: "{{ dsinfo.value[0].datastore }}"
+
+    - name: Get network id (filtered by datacenter)
+      vmware.vmware_rest.vcenter_network_info:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+        filter_names: ["{{ network_name }}"]
+        filter_datacenters: ["{{ datacenter_moid }}"]
+      register: netinfo
+
+    - name: Assert network found
+      ansible.builtin.assert:
+        that: netinfo.value | length > 0
+        fail_msg: "Network/PortGroup '{{ network_name }}' not found under datacenter '{{ datacenter_name }}'."
+
+    - name: Set network MoID
+      ansible.builtin.set_fact:
+        network_moid: "{{ netinfo.value[0].network }}"
+
+    - name: Get resource pool id (filtered by host + datacenter)
+      vmware.vmware_rest.vcenter_resourcepool_info:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+        filter_names: ["{{ resource_pool_name }}"]
+        filter_hosts: ["{{ host_moid }}"]
+        filter_datacenters: ["{{ datacenter_moid }}"]
+      register: rpinfo
+
+    - name: Assert resource pool found
+      ansible.builtin.assert:
+        that: rpinfo.value | length > 0
+        fail_msg: "Resource pool '{{ resource_pool_name }}' not found for host '{{ esxi_host_name }}' in datacenter '{{ datacenter_name }}'."
+
+    - name: Set resource pool MoID
+      ansible.builtin.set_fact:
+        resource_pool_moid: >-
+          {{
+            rpinfo.value[0].resource_pool
+            | default(rpinfo.value[0].resourcepool)
+          }}
+
+    - name: Show discovered MoIDs
+      ansible.builtin.debug:
+        msg:
+          datacenter_moid: "{{ datacenter_moid }}"
+          host_moid: "{{ host_moid }}"
+          folder_moid: "{{ folder_moid }}"
+          datastore_moid: "{{ datastore_moid }}"
+          network_moid: "{{ network_moid }}"
+          resource_pool_moid: "{{ resource_pool_moid }}"
+
+    - name: Save MoIDs to file (optional)
+      when: save_moids_to_file | bool
+      ansible.builtin.copy:
+        dest: "{{ moids_file_path }}"
+        mode: "0600"
+        content: |
+          datacenter_moid: "{{ datacenter_moid }}"
+          host_moid: "{{ host_moid }}"
+          folder_moid: "{{ folder_moid }}"
+          datastore_moid: "{{ datastore_moid }}"
+          network_moid: "{{ network_moid }}"
+          resource_pool_moid: "{{ resource_pool_moid }}"
+
+    # --- Create VM using those MoIDs ---
+    - name: Create VM (no template) using vcenter_vm with explicit MoIDs
+      vmware.vmware_rest.vcenter_vm:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+        state: present
+
+        name: "{{ vm_name }}"
+        guest_OS: "{{ guest_os }}"
+
+        placement:
+          folder: "{{ folder_moid }}"
+          host: "{{ host_moid }}"
+          resource_pool: "{{ resource_pool_moid }}"
+          datastore: "{{ datastore_moid }}"
+
+        cpu:
+          count: "{{ cpu_count }}"
+        memory:
+          size_MiB: "{{ memory_mib }}"
+
+        disks:
+          - type: SATA
+            new_vmdk:
+              name: "{{ vm_name }}-disk0"
+              capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}"  # bytes
+
+        nics:
+          - type: VMXNET3
+            start_connected: true
+            backing:
+              type: STANDARD_PORTGROUP
+              network: "{{ network_moid }}"
+      register: vm_result
+
+    - name: Show created VM id
+      ansible.builtin.debug:
+        msg: "Created VM id: {{ vm_result.id }}"
