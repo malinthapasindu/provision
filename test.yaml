@@ -21,7 +21,7 @@
 
     # VM spec
     vm_name: "new-vm-001"
-    guest_os: "RHEL_9_64"                # VMware REST GuestOS enum
+    guest_os: "RHEL_8_64"                # VMware REST GuestOS enum
     cpu_count: 2
     memory_mib: 4096
     disk0_gb: 40
