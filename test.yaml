@@ -194,15 +194,15 @@
    #           capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}" 
 
          disks:
-       	 - type: SATA
-      		 backing:
-        		 type: VMDK_FILE
-        		 vmdk_file: '[datastore2] {{ vm_name }}/{{ vm_name }}.vmdk'
+       	   - type: SATA
+      		   backing:
+        		   type: VMDK_FILE
+        		   vmdk_file: '[datastore2] {{ vm_name }}/{{ vm_name }}.vmdk'
              
-         - type: SATA
-           new_vmdk:
-             name: second_disk
-             capacity: 32000000000
+           - type: SATA
+             new_vmdk:
+               name: second_disk
+               capacity: 32000000000
 
         nics:
           - type: VMXNET3
