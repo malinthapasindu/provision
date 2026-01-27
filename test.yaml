@@ -27,7 +27,7 @@
     disk0_gb: 40
 
     # Resource Pool name (default on most standalone/cluster roots)
-    #resource_pool_name: "Resources"
+    resource_pool_name: "Resources"
 
     # Optional: write discovered MoIDs to a file for reuse
     #save_moids_to_file: true
@@ -129,6 +129,30 @@
     - name: Set network MoID
       ansible.builtin.set_fact:
         network_moid: "{{ netinfo.value[0].network }}"
+
+    - name: Get resource pool id (filtered by host + datacenter)
+      vmware.vmware_rest.vcenter_resourcepool_info:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+        filter_names: ["{{ resource_pool_name }}"]
+        filter_hosts: ["{{ host_moid }}"]
+        filter_datacenters: ["{{ datacenter_moid }}"]
+      register: rpinfo
+
+    - name: Assert resource pool found
+      ansible.builtin.assert:
+        that: rpinfo.value | length > 0
+        fail_msg: "Resource pool '{{ resource_pool_name }}' not found for host '{{ esxi_host_name }}' in datacenter '{{ datacenter_name }}'."
+
+    - name: Set resource pool MoID
+      ansible.builtin.set_fact:
+        resource_pool_moid: >-
+          {{
+            rpinfo.value[0].resource_pool
+            | default(rpinfo.value[0].resourcepool)
+          }}
     
     - name: Show discovered MoIDs
       ansible.builtin.debug:
@@ -138,7 +162,7 @@
           folder_moid: "{{ folder_moid }}"
           datastore_moid: "{{ datastore_moid }}"
           network_moid: "{{ network_moid }}"
-          
+          resource_pool_moid: "{{ resource_pool_moid }}"
     
     # --- Create VM using those MoIDs ---
     - name: Create VM (no template) using vcenter_vm with explicit MoIDs
@@ -156,6 +180,7 @@
           folder: "{{ folder_moid }}"
           host: "{{ host_moid }}"
           datastore: "{{ datastore_moid }}"
+          resource_pool: "{{ resource_pool_moid }}"
 
         cpu:
           count: "{{ cpu_count }}"
