@@ -5,7 +5,7 @@
       datastore: "{{ lookup('vmware.vmware_rest.datastore_moid', '/BI/datastore/datastore2') }}"
       folder: "{{ lookup('vmware.vmware_rest.folder_moid', '/BI/vm') }}"
     name: test_vm1
-    guest_OS: RHEL_7_64
+    guest_OS: RHEL_8_64
     hardware_version: VMX_11
     memory:
       hot_add_enabled: true
