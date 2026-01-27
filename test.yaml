@@ -24,7 +24,7 @@
     guest_os: "RHEL_8_64"                # VMware REST GuestOS enum
     cpu_count: 2
     memory_mib: 4096
-    disk0_gb: 40
+ #   disk0_gb: 40
 
     # Resource Pool name (default on most standalone/cluster roots)
    # resource_pool_name: "Resources"
