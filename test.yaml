@@ -24,7 +24,7 @@
     guest_os: "RHEL_8_64"                # VMware REST GuestOS enum
     cpu_count: 2
     memory_mib: 4096
- #   disk0_gb: 40
+    disk0_gb: 40
 
     # Resource Pool name (default on most standalone/cluster roots)
    # resource_pool_name: "Resources"
@@ -192,6 +192,17 @@
    #         new_vmdk:
    #           name: "{{ vm_name }}-disk0"
    #           capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}" 
+
+         disks:
+       	 - type: SATA
+      		 backing:
+        		 type: VMDK_FILE
+        		 vmdk_file: '[datastore2] {{ vm_name }}/{{ vm_name }}.vmdk'
+             
+         - type: SATA
+           new_vmdk:
+             name: second_disk
+             capacity: 32000000000
 
         nics:
           - type: VMXNET3
