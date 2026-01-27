@@ -41,11 +41,15 @@
   tasks:
     - name: Resolve MoIDs using inventory paths
       ansible.builtin.set_fact:
-        folder_moid: "{{ lookup('vmware.vmware.moid_from_path', folder_path, type='folder') }}"
-        host_moid: "{{ lookup('vmware.vmware.moid_from_path', host_path, type='host') }}"
+        #folder_moid: "{{ lookup('vmware.vmware.moid_from_path', folder_path, type='folder') }}"
+        folder_moid: "{{ lookup('vmware.vmware_rest.folder_moid', '/BI/vm') }}"
+        #host_moid: "{{ lookup('vmware.vmware.moid_from_path', host_path, type='host') }}"
+        host_moid: "{{ lookup('vmware.vmware.moid_from_path', '/BI/host/192.168.50.58') }}"
         #rp_moid: "{{ lookup('vmware.vmware.moid_from_path', rp_path, type='resource_pool') }}"
-        ds_moid: "{{ lookup('vmware.vmware.moid_from_path', ds_path, type='datastore') }}"
-        net_moid: "{{ lookup('vmware.vmware.moid_from_path', net_path, type='network') }}"
+        #ds_moid: "{{ lookup('vmware.vmware.moid_from_path', ds_path, type='datastore') }}"
+        ds_moid: "{{ lookup('vmware.vmware.moid_from_path', '/BI/datastore/datastore2') }}"
+        #net_moid: "{{ lookup('vmware.vmware.moid_from_path', net_path, type='network') }}"
+        #net_moid: "{{ lookup('vmware.vmware.moid_from_path', '/BI/network/85-Network') }}"
 
     - name: Create VM (powered off)
       vmware.vmware_rest.vcenter_vm:
