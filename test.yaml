@@ -226,4 +226,4 @@
         backing:
           type: STANDARD_PORTGROUP      # change to DISTRIBUTED_PORTGROUP if vDS
           network: "{{ network_moid }}"
-        register: nic_result
+      register: nic_result
