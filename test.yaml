@@ -195,10 +195,10 @@
              capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}" 
              
         disks:
-          - type: SCSI
+         # - type: SCSI
             new_vmdk:
              name: "{{ vm_name }}-disk1"
-             capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}"
+             capacity: "{{ (disk1_gb | int) * 1024 * 1024 * 1024 }}"
   
         nics:
           - type: VMXNET3
