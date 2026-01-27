@@ -197,8 +197,9 @@
           - type: VMXNET3
             start_connected: true
             backing:
-              type: "{{ nic_backing_type }}"
+              type: STANDARD_PORTGROUP
               network: "{{ network_moid }}"
+              
       register: vm_result
 
     - name: Show created VM id
