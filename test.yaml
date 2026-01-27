@@ -172,7 +172,7 @@
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
         vcenter_validate_certs: "{{ vcenter_validate_certs }}"
-        #state: present
+        state: present
 
         name: "{{ vm_name }}"
         guest_OS: "{{ guest_os }}"
@@ -205,7 +205,7 @@
             backing:
               type: STANDARD_PORTGROUP
               network: "{{ network_moid }}"
-            state: present
+            #state: present
               
       register: vm_result
 
