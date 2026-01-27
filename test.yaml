@@ -213,17 +213,17 @@
       ansible.builtin.debug:
         msg: "Created VM id: {{ vm_result.id }}"
 
-  - name: Add NIC to VM
-    vmware.vmware_rest.vcenter_vm_hardware_ethernet:
-      vcenter_hostname: "{{ vcenter_hostname }}"
-      vcenter_username: "{{ vcenter_username }}"
-      vcenter_password: "{{ vcenter_password }}"
-      vcenter_validate_certs: "{{ vcenter_validate_certs }}"
-    vm: "{{ vm_result.id }}"
-    state: present
-    type: VMXNET3
-    start_connected: true
-    backing:
-      type: STANDARD_PORTGROUP      # change to DISTRIBUTED_PORTGROUP if vDS
-      network: "{{ network_moid }}"
-    register: nic_result
+    - name: Add NIC to VM
+      vmware.vmware_rest.vcenter_vm_hardware_ethernet:
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        vcenter_validate_certs: "{{ vcenter_validate_certs }}"
+        vm: "{{ vm_result.id }}"
+        state: present
+        type: VMXNET3
+        start_connected: true
+        backing:
+          type: STANDARD_PORTGROUP      # change to DISTRIBUTED_PORTGROUP if vDS
+          network: "{{ network_moid }}"
+        register: nic_result
