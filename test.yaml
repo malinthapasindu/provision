@@ -25,6 +25,7 @@
     cpu_count: 2
     memory_mib: 4096
     disk0_gb: 50
+    disk1_gb: 50
 
     # Resource Pool name (default on most standalone/cluster roots)
    # resource_pool_name: "Resources"
@@ -192,6 +193,12 @@
             new_vmdk:
              name: "{{ vm_name }}-disk0"
              capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}" 
+             
+        disks:
+          - type: SCSI
+            new_vmdk:
+             name: "{{ vm_name }}-disk1"
+             capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}"
   
         nics:
           - type: VMXNET3
