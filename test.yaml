@@ -187,18 +187,18 @@
         memory:
           size_MiB: "{{ memory_mib }}"
 
-        disks:
-          - type: SATA
-            new_vmdk:
-              name: "{{ vm_name }}-disk0"
-              capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}"  # bytes
+     #   disks:
+     #     - type: SATA
+     #       new_vmdk:
+     #         name: "{{ vm_name }}-disk0"
+      #        capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}"  # bytes
 
-        nics:
-          - type: VMXNET3
-            start_connected: true
-            backing:
-              type: STANDARD_PORTGROUP
-              network: "{{ network_moid }}"
+    #    nics:
+     #     - type: VMXNET3
+     #       start_connected: true
+     #       backing:
+     #         type: STANDARD_PORTGROUP
+     #         network: "{{ network_moid }}"
       register: vm_result
 
     - name: Show created VM id
