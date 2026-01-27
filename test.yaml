@@ -187,23 +187,12 @@
         memory:
           size_MiB: "{{ memory_mib }}"
 
-     #   disks:
-     #     - type: SATA
-     #       new_vmdk:
-     #         name: "{{ vm_name }}-disk0"
-     #         capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}" 
-
         disks:
-          - type: SCSI
-            backing:
-              type: VMDK_FILE
-              vmdk_file: '[datastore2] new-vm-001/{{ vm_name }}.vmdk'
-          - type: SCSI
+          - type: SATA
             new_vmdk:
-              name: second_disk
-              capacity: 32000000000
-
-
+             name: "{{ vm_name }}-disk0"
+             capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}" 
+  
         nics:
           - type: VMXNET3
             start_connected: true
