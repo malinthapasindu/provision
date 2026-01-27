@@ -188,7 +188,7 @@
           size_MiB: "{{ memory_mib }}"
 
         disks:
-          - type: SATA
+          - type: SCSI
             new_vmdk:
              name: "{{ vm_name }}-disk0"
              capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}" 
