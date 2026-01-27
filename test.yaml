@@ -199,12 +199,12 @@
              name: "{{ vm_name }}-disk1"
              capacity: "{{ (disk1_gb | int) * 1024 * 1024 * 1024 }}"
   
-   #     nics:
-   #       - type: VMXNET3
-   #         start_connected: true
-   #         backing:
-   #           type: STANDARD_PORTGROUP
-   #           network: "{{ network_moid }}"
+        nics:
+          - type: VMXNET3
+            start_connected: true
+            backing:
+              type: STANDARD_PORTGROUP
+              network: "{{ network_moid }}"
               
       register: vm_result
 
