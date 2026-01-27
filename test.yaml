@@ -155,7 +155,6 @@
         placement:
           folder: "{{ folder_moid }}"
           host: "{{ host_moid }}"
-          resource_pool: "{{ resource_pool_moid }}"
           datastore: "{{ datastore_moid }}"
 
         cpu:
