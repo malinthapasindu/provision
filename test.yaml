@@ -139,18 +139,7 @@
           datastore_moid: "{{ datastore_moid }}"
           network_moid: "{{ network_moid }}"
           
-    - name: Save MoIDs to file (optional)
-      when: save_moids_to_file | bool
-      ansible.builtin.copy:
-        dest: "{{ moids_file_path }}"
-        mode: "0600"
-        content: |
-          datacenter_moid: "{{ datacenter_moid }}"
-          host_moid: "{{ host_moid }}"
-          folder_moid: "{{ folder_moid }}"
-          datastore_moid: "{{ datastore_moid }}"
-          network_moid: "{{ network_moid }}"
-
+    
     # --- Create VM using those MoIDs ---
     - name: Create VM (no template) using vcenter_vm with explicit MoIDs
       vmware.vmware_rest.vcenter_vm:
