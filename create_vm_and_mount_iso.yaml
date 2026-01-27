@@ -27,7 +27,7 @@
     # Inventory paths (as shown in vCenter UI)
     folder_path: "/{{ datacenter_name }}/vm"
     host_path: "/{{ datacenter_name }}/host/{{ esxi_host }}"
-    rp_path: "/{{ datacenter_name }}/host/{{ esxi_host }}/Resources"
+    #rp_path: "/{{ datacenter_name }}/host/{{ esxi_host }}/Resources"
     ds_path: "/{{ datacenter_name }}/datastore/{{ datastore_name }}"
     net_path: "/{{ datacenter_name }}/network/{{ network_name }}"
 
