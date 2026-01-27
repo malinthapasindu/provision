@@ -197,7 +197,7 @@
           - type: SATA
             backing:
               type: VMDK_FILE
-              vmdk_file: '[datastore2] test-vm1/{{ vm_name }}.vmdk'
+              vmdk_file: '[datastore2] new-vm-001/{{ vm_name }}.vmdk'
 
           - type: SATA
             new_vmdk:
