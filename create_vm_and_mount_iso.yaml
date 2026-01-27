@@ -43,7 +43,7 @@
       ansible.builtin.set_fact:
         folder_moid: "{{ lookup('vmware.vmware.moid_from_path', folder_path, type='folder') }}"
         host_moid: "{{ lookup('vmware.vmware.moid_from_path', host_path, type='host') }}"
-        rp_moid: "{{ lookup('vmware.vmware.moid_from_path', rp_path, type='resource_pool') }}"
+        #rp_moid: "{{ lookup('vmware.vmware.moid_from_path', rp_path, type='resource_pool') }}"
         ds_moid: "{{ lookup('vmware.vmware.moid_from_path', ds_path, type='datastore') }}"
         net_moid: "{{ lookup('vmware.vmware.moid_from_path', net_path, type='network') }}"
 
@@ -61,7 +61,7 @@
         placement:
           folder: "{{ folder_moid }}"
           host: "{{ host_moid }}"
-          resource_pool: "{{ rp_moid }}"
+          #resource_pool: "{{ rp_moid }}"
           datastore: "{{ ds_moid }}"
 
         cpu:
