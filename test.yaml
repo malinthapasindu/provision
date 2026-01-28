@@ -1,5 +1,5 @@
 ---
-- name: Discover MoIDs and create VM (no template) using vcenter_vm
+- name: VM Creation Using Ansible
   hosts: localhost
   gather_facts: false
   collections:
@@ -14,29 +14,21 @@
 
     # Your vSphere objects
     datacenter_name: "BI"
-    esxi_host_name: "192.168.50.58"      # as shown in vCenter inventory
-    vm_folder_name: "Provition"                 # default VM folder under the datacenter
+    esxi_host_name: "192.168.50.58"      
+    vm_folder_name: "Provition"           
     datastore_name: "datastore2"
     network_name: "85-Network"
 
     # VM spec
     vm_name: "new-vm-001"
-    guest_os: "RHEL_8_64"                # VMware REST GuestOS enum
+    guest_os: "RHEL_8_64"              
     cpu_count: 2
     memory_mib: 4096
     disk0_gb: 50
     disk1_gb: 50
 
-    # Resource Pool name (default on most standalone/cluster roots)
-   # resource_pool_name: "Resources"
-
-    # Optional: write discovered MoIDs to a file for reuse
-    #save_moids_to_file: true
-    #moids_file_path: "/tmp/vsphere_moids.yml"
-
-  tasks:
-    # --- Discover MoIDs (IDs) ---
-
+    tasks:
+    
     - name: Get datacenter id
       vmware.vmware_rest.vcenter_datacenter_info:
         vcenter_hostname: "{{ vcenter_hostname }}"
@@ -130,31 +122,7 @@
     - name: Set network MoID
       ansible.builtin.set_fact:
         network_moid: "{{ netinfo.value[0].network }}"
-
-  #  - name: Get resource pool id (filtered by host + datacenter)
-  #    vmware.vmware_rest.vcenter_resourcepool_info:
-  #      vcenter_hostname: "{{ vcenter_hostname }}"
-  #      vcenter_username: "{{ vcenter_username }}"
-  #      vcenter_password: "{{ vcenter_password }}"
-  #      vcenter_validate_certs: "{{ vcenter_validate_certs }}"
-  #      filter_names: ["{{ resource_pool_name }}"]
-  #      filter_hosts: ["{{ host_moid }}"]
-  #      filter_datacenters: ["{{ datacenter_moid }}"]
-  #    register: rpinfo
-
-  #  - name: Assert resource pool found
-  #    ansible.builtin.assert:
-  #      that: rpinfo.value | length > 0
-  #      fail_msg: "Resource pool '{{ resource_pool_name }}' not found for host '{{ esxi_host_name }}' in datacenter '{{ datacenter_name }}'."
-
-  #  - name: Set resource pool MoID
-  #    ansible.builtin.set_fact:
-  #      resource_pool_moid: >-
-  #        {{
-  #          rpinfo.value[0].resource_pool
-  #          | default(rpinfo.value[0].resourcepool)
-  #        }}
-    
+   
     - name: Show discovered MoIDs
       ansible.builtin.debug:
         msg:
@@ -163,50 +131,33 @@
           folder_moid: "{{ folder_moid }}"
           datastore_moid: "{{ datastore_moid }}"
           network_moid: "{{ network_moid }}"
-    #      resource_pool_moid: "{{ resource_pool_moid }}"
-    
-    # --- Create VM using those MoIDs ---
-    - name: Create VM (no template) using vcenter_vm with explicit MoIDs
+       
+    - name: Create VM
       vmware.vmware_rest.vcenter_vm:
         vcenter_hostname: "{{ vcenter_hostname }}"
         vcenter_username: "{{ vcenter_username }}"
         vcenter_password: "{{ vcenter_password }}"
         vcenter_validate_certs: "{{ vcenter_validate_certs }}"
         state: present
-
         name: "{{ vm_name }}"
         guest_OS: "{{ guest_os }}"
-
         placement:
           folder: "{{ folder_moid }}"
           host: "{{ host_moid }}"
           datastore: "{{ datastore_moid }}"
-     #     resource_pool: "{{ resource_pool_moid }}"
-
         cpu:
           count: "{{ cpu_count }}"
         memory:
           size_MiB: "{{ memory_mib }}"
-
         disks:
           - type: SCSI
             new_vmdk:
              name: "{{ vm_name }}-disk0"
              capacity: "{{ (disk0_gb | int) * 1024 * 1024 * 1024 }}" 
-             
           - type: SCSI
             new_vmdk:
              name: "{{ vm_name }}-disk1"
-             capacity: "{{ (disk1_gb | int) * 1024 * 1024 * 1024 }}"
-  
-  #      nics:
-  #        - type: VMXNET3
-  #          start_connected: true
-  #          backing:
-  #            type: STANDARD_PORTGROUP
-  #            network: "{{ network_moid }}"
-  #          state: present
-              
+             capacity: "{{ (disk1_gb | int) * 1024 * 1024 * 1024 }}"      
       register: vm_result
 
     - name: Show created VM id
